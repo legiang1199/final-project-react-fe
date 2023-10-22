@@ -41,7 +41,7 @@ export function Navbar({ brandName, routes }) {
   ];
 
   const navList = (
-    <div className="hidden sm:ml-6 sm:block">
+    <div className="hidden sm:ml-6 sm:block bg-black">
       <div className="flex space-x-4">
         {routes.map(({ name, path, icon, href, target }) => (
           <Typography
@@ -83,7 +83,7 @@ export function Navbar({ brandName, routes }) {
   );
 
   return (
-    <MTNavbar color="transparent" className="p-3">
+    <MTNavbar color="transparent" className="p-3 bg-black" >
       <div className="container mx-auto flex items-center justify-between text-white">
         <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
           <div className="flex flex-shrink-0 items-center">

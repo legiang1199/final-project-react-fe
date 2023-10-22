@@ -1,6 +1,8 @@
 import { Home, Profile, SignIn, SignUp} from "@/pages";
 import  ForgotPassword  from "@/pages/forgetPassword";
 import Product from "@/pages/product";
+import Auction from "@/pages/auction";
+import ProductDetail from "@/components/product/productDetail";
 import {
   HomeIcon,
   UserCircleIcon,
@@ -21,7 +23,7 @@ export const routes = [
     name: "Auction",
     icon: GlobeAltIcon,
     path: "/auction",
-    element: <Home />,
+    element: <Auction />,
   },
   {
     path: "/sign-in",
@@ -43,6 +45,10 @@ export const routes = [
     path: "/home",
     element: <Home />,
   },
+  {
+    path: "/product/:id",
+    element: <ProductDetail />,
+  }
 ];
 
 export default routes;

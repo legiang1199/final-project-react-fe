@@ -142,7 +142,10 @@ export function Home() {
         </div>
       </section>
       <section>
+      <Card className="mx-auto max-w1xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
+        <PageTitle heading="The product is being approved">Will be auctioned in the near future</PageTitle>
         <ProductList />
+        </Card>
       </section>
       <div className="bg-blue-gray-50/50">
         <Footer />
