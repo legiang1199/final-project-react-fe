@@ -2,29 +2,31 @@ import {
   StarIcon,
   ArrowPathIcon,
   FingerPrintIcon,
+  UserCircleIcon,
+  
 } from "@heroicons/react/24/solid";
 
 export const featuresData = [
   {
     color: "blue",
-    title: "Awarded Agency",
-    icon: StarIcon,
+    title: "Transactions every 24 hours",
+    icon: ArrowPathIcon,
     description:
-      "Divide details about your product or agency work into parts. A paragraph describing a feature will be enough.",
+      "44 million",
   },
   {
     color: "red",
-    title: "Free Revisions",
-    icon: ArrowPathIcon,
+    title: "Assets under holding",
+    icon: StarIcon,
     description:
-      "Keep you user engaged by providing meaningful information. Remember that by this time, the user is curious.",
+      "$119 trillion",
   },
   {
     color: "teal",
-    title: "Verified Company",
-    icon: FingerPrintIcon,
+    title: "New users annually",
+    icon: UserCircleIcon,
     description:
-      "Write a few lines about each one. A paragraph describing a feature will be enough. Keep you user engaged!",
+      "46,000",
   },
 ];
 

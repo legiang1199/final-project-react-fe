@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import {
   Card,
   CardHeader,
@@ -17,8 +17,14 @@ import UserApi from "../api/userApi";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
-
 export const SignIn = () => {
+  const googleAuth = () => {
+		window.open(
+			"http://localhost:3000/auth/google/",
+			"_self"
+		);
+	};
+
   const validationSchema = Yup.object().shape({
     email: Yup.string().required("Email is required").email("Email is invalid"),
     password: Yup.string()
@@ -34,10 +40,11 @@ export const SignIn = () => {
     validationSchema: validationSchema,
     onSubmit: async (data, { setSubmitting, setStatus }) => {
       try {
-        await UserApi.login(data);
+        const response = await UserApi.login(data);
         setStatus("success");
-        localStorage.setItem('true', true);
-        navigate("/home");
+        localStorage.setItem("token", response.token);
+        localStorage.setItem("user", JSON.stringify(response.user));
+        window.location.href = "/";
       } catch (error) {
         console.error("Error:", error);
       } finally {
@@ -45,30 +52,6 @@ export const SignIn = () => {
       }
     },
   });
-  const navigate = useNavigate();
-  const [user, setUser] = useState({
-    email: "",
-    password: "",
-  });
-  const handleInput = (e) => {
-    const name = e.target.name;
-    const value = e.target.value;
-    setUser({ ...user, [name]: value });
-  }
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    axios.post('http://localhost:3001/users/login', user)
-      .then((res) => {
-        console.log(res.data);
-        localStorage.setItem('token', res.data.accessToken);
-        navigate("/home");
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }
-
-
 
   return (
     <>
@@ -77,59 +60,90 @@ export const SignIn = () => {
         className="absolute inset-0 z-0 h-full w-full object-cover"
       />
       <div className="absolute inset-0 z-0 h-full w-full bg-black/50" />
-      <form className="container mx-auto p-4" onSubmit={handleSubmit} >
-        <Card className="absolute left-2/4 top-2/4 w-full max-w-[24rem] -translate-x-2/4 -translate-y-2/4">
-          <CardHeader
-            variant="gradient"
-            color="blue"
-            className="mb-4 grid h-28 place-items-center"
-          >
-            <Typography variant="h3" color="white">
-              Sign In
-            </Typography>
-          </CardHeader>
-          <CardBody className="flex flex-col gap-4">
+      <Card className="absolute left-2/4 top-2/4 w-full max-w-[24rem] -translate-x-2/4 -translate-y-2/4">
+        <CardHeader
+          variant="gradient"
+          color="blue"
+          className="mb-4 grid h-28 place-items-center"
+        >
+          <Typography variant="h3" color="white">
+            Sign In
+          </Typography>
+        </CardHeader>
+        <CardBody className="flex flex-col gap-4">
+          <form onSubmit={formik.handleSubmit}>
+            <div>
+              <Input
+                required
+                variant="standard"
+                name="email"
+                type="email"
+                label="Email"
+                className={
+                  "form-control" +
+                  (formik.errors.email && formik.touched.email
+                    ? " is-invalid"
+                    : "")
+                }
+                onChange={formik.handleChange}
+                value={formik.values.email}
+              />
+              <div className="invalid-feedback">
+                {formik.errors.email && formik.touched.email
+                  ? formik.errors.email
+                  : null}
+              </div>
+            </div>
             <Input
-              variant="standard"
-              type="email"
-              label="Email"
-              size="lg"
-              onChange={handleInput}
-            />
-            <Input
+              required
               variant="standard"
               type="password"
+              name="password"
               label="Password"
               size="lg"
-              onChange={handleInput}
+              className={
+                "form-control" +
+                (formik.errors.password && formik.touched.password
+                  ? " is-invalid"
+                  : "")
+              }
+              onChange={formik.handleChange}
+              value={formik.values.password}
             />
-            <div className="-ml-2.5">
-              <Checkbox label="Remember Me" />
+            <div className="invalid-feedback">
+              {formik.errors.password && formik.touched.password
+                ? formik.errors.password
+                : null}
             </div>
-          </CardBody>
-          <CardFooter className="pt-0">
             <Button variant="gradient" fullWidth type="submit">
               Sign In
             </Button>
-            <Typography variant="small" className="mt-6 flex justify-center">
-              Don't have an account?
-              <Link to="/sign-up">
-                <Typography
-                  as="span"
-                  variant="small"
-                  color="blue"
-                  className="ml-1 font-bold"
-                >
-                  Sign up
-                </Typography>
-              </Link>
-            </Typography>
-          </CardFooter>
-        </Card>
-      </form>
+            <p className="text-center">Or</p>
+            <Button variant="gradient" fullWidth onClick={googleAuth}>
+              Sign In with Google
+            </Button>
+          </form>
+        </CardBody>
+        <CardFooter className="pt-0">
+          <Typography variant="small" className="mt-6 flex justify-center">
+            Don't have an account?
+            <Link to="/sign-up">
+              <Typography
+                as="span"
+                variant="small"
+                color="blue"
+                className="ml-1 font-bold"
+              >
+                Sign up
+              </Typography>
+            </Link>
+          </Typography>
+          
+        </CardFooter>
+      </Card>
+
       <div className="container absolute bottom-6 left-2/4 z-10 mx-auto -translate-x-2/4 text-white">
         <SimpleFooter />
-        
       </div>
     </>
   );

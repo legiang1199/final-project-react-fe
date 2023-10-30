@@ -14,10 +14,17 @@ import DropdownButton from "antd/es/dropdown/dropdown-button";
 import Search from "antd/es/input/Search";
 import { DownOutlined } from "@ant-design/icons";
 import { Dropdown, Space } from "antd";
+import jwt_decode from "jwt-decode";
 
 export function Navbar({ brandName, routes }) {
+  const [user, setUser] = React.useState([]);
   const [openNav, setOpenNav] = React.useState(false);
-
+  const token = localStorage.getItem("token");
+  if (token) {
+    const decodedToken = jwt_decode(token);
+    const userfullname = decodedToken.fullname;
+    console.log(userfullname);
+  }
   React.useEffect(() => {
     window.addEventListener(
       "resize",
@@ -26,22 +33,51 @@ export function Navbar({ brandName, routes }) {
   }, []);
 
   const items = [
+
     {
-      label: <a href="/profile" className="'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700'">Profile</a>,
-      key: "0",
+      label: token ? (
+        <a
+          href="/profile"
+          className="'bg-gray-100' : '', 'block text-gray-700' px-4 py-2 text-sm"
+        >
+          Profile
+        </a>
+      ) : null,
     },
     {
-      label: <a href="/sign-in" className="'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700'">Sign up</a>,
-      key: "1",
+      label: token ? (
+        <a
+          href="/logout"
+          className="'bg-gray-100' : '', 'block text-gray-700' px-4 py-2 text-sm"
+        >
+          Log out
+        </a>
+      ) : null,
+    },  
+    {
+      label: token ? null : (
+        <a
+          href="/sign-in"
+          className="'bg-gray-100' : '', 'block text-gray-700' px-4 py-2 text-sm"
+        >
+          Sign In
+        </a>
+      ),
     },
     {
-      label: <a href="/sign-up" className="'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700'">Sign in</a>,
-      key: "2",
-    }
+      label: token ? null : (
+        <a
+          href="/sign-up"
+          className="'bg-gray-100' : '', 'block text-gray-700' px-4 py-2 text-sm"
+        >
+          Sign Up
+        </a>
+      ),
+    },
   ];
 
   const navList = (
-    <div className="hidden sm:ml-6 sm:block bg-black">
+    <div className="hidden bg-black sm:ml-6 sm:block">
       <div className="flex space-x-4">
         {routes.map(({ name, path, icon, href, target }) => (
           <Typography
@@ -83,7 +119,7 @@ export function Navbar({ brandName, routes }) {
   );
 
   return (
-    <MTNavbar color="transparent" className="p-3 bg-black" >
+    <MTNavbar color="transparent" className="bg-black p-3">
       <div className="container mx-auto flex items-center justify-between text-white">
         <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
           <div className="flex flex-shrink-0 items-center">

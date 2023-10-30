@@ -11,6 +11,8 @@ import {
   DocumentTextIcon,
   GlobeAltIcon
 } from "@heroicons/react/24/solid";
+import LogOut from "./components/logOut";
+import CreateProduct from "./components/product/createProduct";
 
 export const routes = [
   {
@@ -48,6 +50,14 @@ export const routes = [
   {
     path: "/product/:id",
     element: <ProductDetail />,
+  },
+  {
+    path:"/logout",
+    element: <LogOut/>,
+  },
+  {
+    path: "product/create",
+    element: <CreateProduct />,
   }
 ];
 

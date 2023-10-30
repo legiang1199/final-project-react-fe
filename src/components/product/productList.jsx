@@ -14,8 +14,12 @@ import {
 import { PageTitle } from "@/widgets/layout";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import { Link } from "react-router-dom";
+import UserApi from "@/api/userApi";
+import CategoryApi from "@/api/categoryApi";
 
 function ProductList() {
+  const [user, setUser] = useState([]);
+  const [category, setCategory] = useState([]);
   const [products, setProducts] = useState([]);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState(null);
@@ -45,50 +49,66 @@ function ProductList() {
         });
     }
   }, [status]);
+
   let content;
 
   if (status === "idle" || status === "pending") {
-    return <p>Loading...</p>;
+    return (
+      <div className="text-center">
+        <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+          Loading
+        </h1>
+        <p className="mt-6 text-base leading-7 text-gray-600">
+          Just a moment, we're fetching that for you.
+        </p>
+      </div>
+    );
   }
 
   if (status === "error") {
-    return <p>Something went wrong: {error.message}</p>;
+    return (
+      <div className="text-center">
+        <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+          Loading
+        </h1>
+        <p className="mt-6 text-base leading-7 text-gray-600">
+          Something went wrong: {error.message}
+        </p>
+      </div>
+    );
   }
 
   if (status === "success") {
     return (
-      <div className="bg-white">
-        <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
-          {displayedProducts.map((product) => (
-            <Link to={`/product/${product._id}`}>
-              <div key={product.id} className="group relative">
-                <CardHeader className="aspect-h-1 aspect-w-1 lg:aspect-none w-full overflow-hidden rounded-md bg-gray-200 group-hover:opacity-75 lg:h-80">
-                  <img
-                    alt="Card Image"
-                    src="/img/teamwork.jpeg"
-                    className="h-full w-full"
-                  />
-                </CardHeader>
-                <CardBody className="mt-4 flex justify-between">
-                  <div>
-                    <h3 className="text-sm text-gray-700">{product.name}</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {product.description}
-                    </p>
+      <div>
+        <div className="bg-white">
+          
+            <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
+              {displayedProducts.map((product) => (
+                <Link to={`/product/${product._id}`}>
+                  <div key={product.id} className="group relative">
+                    <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-lg bg-gray-200 xl:aspect-h-8 xl:aspect-w-7">
+                      <img
+                        alt="Card Image"
+                        src="/img/teamwork.jpeg"
+                        className="h-full w-full object-cover object-center group-hover:opacity-75"
+                      />
+                    </div>
+                    <div className="mt-4 flex justify-between">
+                      <div>
+                      <h3 className="mt-1 text-lg font-medium text-gray-900">{product.name}</h3>
+                        <p className="mt-4 text-sm text-gray-700">
+                          {product.status || "Owner not found"}
+                        </p>
+                      </div>
+
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {product.category}
-                    </p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {product.owner}
-                    </p>
-                  </div>
-                </CardBody>
-              </div>
-            </Link>
-          ))}
-        </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        
         <div className="mt-4 flex justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
           <div>
             <p className="text-sm text-gray-700">

@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import ProductApi from "@/api/productApi";
 import { useParams } from "react-router-dom";
+import UserApi from "@/api/userApi";
 
 function ProductDetail() {
+  const [user, setUser] = useState([]);
   const [product, setProduct] = useState([]);
-  const [owner, setOwner] = useState([]);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState(null);
   const { id } = useParams();
+
   useEffect(() => {
     if (status === "idle") {
       // Chỉ gửi yêu cầu khi trạng thái là 'idle' (chưa gửi yêu cầu trước đó)
@@ -17,16 +19,6 @@ function ProductDetail() {
         .then((data) => {
           setProduct(data);
           setStatus("success");
-          const ownerName = data.owner;
-          ProductApi.getOwnerByName(ownerName)
-            .then((data) => {
-              setOwner(data);
-              setStatus("success");
-            })
-            .catch((error) => {
-              setError(error);
-              setStatus("error");
-            });
         })
         .catch((error) => {
           setError(error);
@@ -35,14 +27,46 @@ function ProductDetail() {
     }
   }, [status]);
 
+  useEffect(() => {
+    if (status === "success") {
+      // Once you have the product details, fetch the owner's name
+      UserApi.getUserById(product.owner)
+        .then((userData) => {
+          setUser(userData);
+        })
+        .catch((error) => {
+          // Handle any errors
+          console.error("Error fetching user data:", error);
+        });
+    }
+  }, [status, product.owner]);
+
   let content;
 
   if (status === "idle" || status === "pending") {
-    return <p>Loading...</p>;
+    return (
+      <div className="text-center">
+        <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+          Loading
+        </h1>
+        <p className="mt-6 text-base leading-7 text-gray-600">
+          Just a moment, we're fetching that for you.
+        </p>
+      </div>
+    );
   }
 
   if (status === "error") {
-    return <p>Something went wrong: {error.message}</p>;
+    return (
+      <div className="text-center">
+        <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+          Loading
+        </h1>
+        <p className="mt-6 text-base leading-7 text-gray-600">
+          Something went wrong: {error.message}
+        </p>
+      </div>
+    );
   }
 
   if (status === "success") {
@@ -51,36 +75,52 @@ function ProductDetail() {
         <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
           <div className="pt-6">
             {/* Image gallery */}
-            <div className="mx-auto mt-6 max-w-2xl sm:px-6 lg:grid lg:max-w-7xl lg:grid-cols-3 lg:gap-x-8 lg:px-8">
-              <div className="aspect-h-4 aspect-w-3 hidden overflow-hidden rounded-lg lg:block">
-                <img
-                  alt="Card Image"
-                  src="/img/teamwork.jpeg"
-                  className="h-full w-full object-cover object-center"
-                />
-              </div>
-              <div className="hidden lg:grid lg:grid-cols-1 lg:gap-y-8">
-                <div className="aspect-h-2 aspect-w-3 overflow-hidden rounded-lg">
-                  <img
-                    alt="Card Image"
-                    src="/img/teamwork.jpeg"
-                    className="h-full w-full object-cover object-center"
-                  />
+            <div>
+              <div className="carousel w-full">
+                <div id="slide1" className="carousel-item relative w-full">
+                  <img src="/public/img/teamwork.jpeg" className="w-full" />
+                  <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                    <a href="#slide4" className="btn btn-circle">
+                      ❮
+                    </a>
+                    <a href="#slide2" className="btn btn-circle">
+                      ❯
+                    </a>
+                  </div>
                 </div>
-                <div className="aspect-h-2 aspect-w-3 overflow-hidden rounded-lg">
-                  <img
-                    alt="Card Image"
-                    src="/img/teamwork.jpeg"
-                    className="h-full w-full object-cover object-center"
-                  />
+                <div id="slide2" className="carousel-item relative w-full">
+                  <img src="/public/img/teamwork.jpeg" className="w-full" />
+                  <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                    <a href="#slide1" className="btn btn-circle">
+                      ❮
+                    </a>
+                    <a href="#slide3" className="btn btn-circle">
+                      ❯
+                    </a>
+                  </div>
                 </div>
-              </div>
-              <div className="aspect-h-5 aspect-w-4 lg:aspect-h-4 lg:aspect-w-3 sm:overflow-hidden sm:rounded-lg">
-                <img
-                  alt="Card Image"
-                  src="/img/teamwork.jpeg"
-                  className="h-full w-full object-cover object-center"
-                />
+                <div id="slide3" className="carousel-item relative w-full">
+                  <img src="/public/img/teamwork.jpeg" className="w-full" />
+                  <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                    <a href="#slide2" className="btn btn-circle">
+                      ❮
+                    </a>
+                    <a href="#slide4" className="btn btn-circle">
+                      ❯
+                    </a>
+                  </div>
+                </div>
+                <div id="slide4" className="carousel-item relative w-full">
+                  <img src="/public/img/teamwork.jpeg" className="w-full" />
+                  <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                    <a href="#slide3" className="btn btn-circle">
+                      ❮
+                    </a>
+                    <a href="#slide1" className="btn btn-circle">
+                      ❯
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -95,24 +135,19 @@ function ProductDetail() {
                 <div>
                   <h3>Owner</h3>
                   <p className="text-3xl text-gray-900">
-                    {product.owner}{} <span className="text-gray-500"></span>
+                    {user.fullname}
+                    {} <span className="text-gray-500"></span>
                   </p>
                 </div>
-                <button
-                  className="mt-10 flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
+                <button className="mt-10 flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                   Add to bag
                 </button>
               </form>
             </div>
-            <div className="py-10 lg:col-span-2 lg:col-start-1 lg:border-r lg:border-gray-200 lg:pb-16 lg:pr-8 lg:pt-6">
-              <div>
-                <h3 className="">Description</h3>
-                <div className="space-y-6">
-                  <p className="text-base text-gray-900">
-                    {product.description}
-                  </p>
-                </div>
+            <div className="mt-10">
+              <h2 className="text-sm font-medium text-gray-900">Details</h2>
+              <div className="mt-4 space-y-6">
+                <p className="text-sm text-gray-600">{product.description}</p>
               </div>
             </div>
           </div>

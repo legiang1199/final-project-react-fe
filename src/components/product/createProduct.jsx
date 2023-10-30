@@ -13,14 +13,14 @@ import {
   import { UploadOutlined } from "@ant-design/icons";
   import { Upload } from "antd";
   import * as Yup from "yup";
-  import ProductApi from "../api/productApi";
+  import ProductApi from "@/api/productApi";
   import UserApi from "@/api/userApi";
   import CategoryApi from "@/api/categoryApi";
   import { Footer } from "@/widgets/layout";
   import { useEffect } from "react";
   import { useState } from "react";
   
-  export function Product() {
+  export function CreateProduct() {
     const [owners, setOwners] = useState([]);
     const [categories, setCategories] = useState([]);
   
@@ -252,5 +252,5 @@ import {
     );
   }
   
-  export default Product;
+  export default CreateProduct;
   

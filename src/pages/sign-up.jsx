@@ -53,6 +53,7 @@ const contextHolder = notification.useNotification();
         await UserApi.register(data);
         setStatus("success");
         {contextHolder}
+        console.log("Success:", data);
       } catch (error) {
         console.error("Error:", error);
       } finally {
