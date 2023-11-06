@@ -17,6 +17,18 @@ import { Dropdown, Space } from "antd";
 
 export function Navbar({ brandName, routes }) {
   const [openNav, setOpenNav] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
+
+  const token = localStorage.getItem("token");
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSearch = () => {
+    // Perform the search using the 'searchQuery' state.
+    console.log("Search query: ", searchQuery);
+    // You can send an API request to search for auctions using 'searchQuery' here.
+  };
 
   React.useEffect(() => {
     window.addEventListener(
@@ -27,21 +39,43 @@ export function Navbar({ brandName, routes }) {
 
   const items = [
     {
-      label: <a href="/profile" className="'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700'">Profile</a>,
-      key: "0",
+      label: token ? (
+        <a
+          href="/profile/"
+          className="'bg-gray-100' : '', 'block text-gray-700' px-4 py-2 text-sm"
+        >
+          Profile
+        </a>
+      ) : (
+        <a
+          href="/sign-in"
+          className="'bg-gray-100' : '', 'block text-gray-700' px-4 py-2 text-sm"
+        >
+          Sign In
+        </a>
+      ),
     },
     {
-      label: <a href="/sign-in" className="'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700'">Sign up</a>,
-      key: "1",
+      label: token ? (
+        <a
+          href="/logout"
+          className="'bg-gray-100' : '', 'block text-gray-700' px-4 py-2 text-sm"
+        >
+          Log out
+        </a>
+      ) : (
+        <a
+          href="/sign-up"
+          className="'bg-gray-100' : '', 'block text-gray-700' px-4 py-2 text-sm"
+        >
+          Sign Up
+        </a>
+      ),
     },
-    {
-      label: <a href="/sign-up" className="'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700'">Sign in</a>,
-      key: "2",
-    }
   ];
 
   const navList = (
-    <div className="hidden sm:ml-6 sm:block">
+    <div className="hidden bg-black sm:ml-6 sm:block">
       <div className="flex space-x-4">
         {routes.map(({ name, path, icon, href, target }) => (
           <Typography
@@ -83,7 +117,7 @@ export function Navbar({ brandName, routes }) {
   );
 
   return (
-    <MTNavbar color="transparent" className="p-3">
+    <MTNavbar color="transparent" className="bg-black p-3">
       <div className="container mx-auto flex items-center justify-between text-white">
         <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
           <div className="flex flex-shrink-0 items-center">
@@ -102,9 +136,12 @@ export function Navbar({ brandName, routes }) {
               size="sm"
               className="relative rounded-full"
               placeholder="Search Auction"
-              onSearch={(value) => console.log(value)}
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onSearch={handleSearch}
               enterButton
             />
+
             <Button
               variant="gradient"
               size="sm"

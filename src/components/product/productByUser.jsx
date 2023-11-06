@@ -6,33 +6,32 @@ import {
   CardBody,
   CardHeader,
   Typography,
-  Button,
-  IconButton,
-  Input,
-  Textarea,
-  Badge,
   CardFooter,
   Avatar,
 } from "@material-tailwind/react";
-import { PageTitle } from "@/widgets/layout";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import { Link } from "react-router-dom";
 import UserApi from "@/api/userApi";
 import CategoryApi from "@/api/categoryApi";
 import { Tooltip } from "antd";
+import jwt_decode from "jwt-decode";
 
-function ProductList() {
+function ProductByUser() {
   const [user, setUser] = useState([]);
   const [category, setCategory] = useState([]);
   const [products, setProducts] = useState([]);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState(null);
+
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(8);
   const startIndex = (page - 1) * limit;
   const endIndex = startIndex + limit;
-  const displayedProducts = products.slice(startIndex, endIndex);
   const [totalPages, setTotalPages] = useState(1);
+  const displayedProducts = products.slice(startIndex, endIndex);
+  const token = localStorage.getItem("token");
+  const decoded = jwt_decode(token);
+  const userId = decoded.id;
 
   useEffect(() => {
     CategoryApi.getAllCategories()
@@ -52,7 +51,7 @@ function ProductList() {
       // Chỉ gửi yêu cầu khi trạng thái là 'idle' (chưa gửi yêu cầu trước đó)
       setStatus("pending");
 
-      ProductApi.getAllProducts()
+      ProductApi.getProductByUserId(userId)
         .then((data) => {
           setProducts(data);
           setStatus("success");
@@ -63,8 +62,6 @@ function ProductList() {
         });
     }
   }, [status]);
-
-  let content;
 
   if (status === "idle" || status === "pending") {
     return (
@@ -97,60 +94,68 @@ function ProductList() {
       <div>
         <div className="bg-white">
           <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
-            {displayedProducts.map((product) => (
-              <Link to={`/product/${product._id}`}>
-                <Card key={product.id} className="shadow-lg shadow-gray-500/10">
-                  <CardHeader>
-                    <img
-                      alt="Card Image"
-                      src="/img/teamwork.jpeg"
-                      className="h-full w-full"
-                    />
-                  </CardHeader>
-                  <CardBody>
-                    <Typography
-                      variant="h5"
-                      color="blue-gray"
-                      className="mb-3 font-bold"
-                    >
-                      {product.name}
-                    </Typography>
-                    <div className="flex justify-between">
-                    <Tooltip>
-                      <Avatar
-                        size="sm"
-                        src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1061&q=80"
-                        className="border-2 border-white hover:z-10"
-                        variant="rounded"
+            {displayedProducts.length === 0 ? (
+              <p>No products available</p>
+            ) : (
+              displayedProducts.map((product) => (
+                <Link to={`/product/${product._id}`}>
+                  <Card
+                    key={product.id}
+                    className="shadow-lg shadow-gray-500/10"
+                  >
+                    <CardHeader>
+                      <img
+                        alt="Card Image"
+                        src="/img/teamwork.jpeg"
+                        className="h-full w-full"
                       />
-                    </Tooltip>
+                    </CardHeader>
+                    <CardBody>
+                      <Typography
+                        variant="h5"
+                        color="blue-gray"
+                        className="mb-3 font-bold"
+                      >
+                        {product.name}
+                      </Typography>
+                      <div className="flex justify-between">
+                        <Tooltip>
+                          <Avatar
+                            size="sm"
+                            src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1061&q=80"
+                            className="border-2 border-white hover:z-10"
+                            variant="rounded"
+                          />
+                        </Tooltip>
 
-                    <Typography className="font-normal text-blue-gray-500">
-                      {product.description}
-                    </Typography>
-                    </div>
-                  </CardBody>
-                  <CardFooter>
-                    <Typography
-                      variant="h5"
-                      color="blue-gray"
-                      className="mb-3 font-bold"
-                    >
-                      {product.price}
-                    </Typography>
-                    <Typography key={product.category} className="font-normal text-blue-gray-500">
-                      {category.map((cate) => {
-                        if (cate._id === product.category) {
-                          return cate.name;
-                        }
-                      }
-                      )}
-                      
-                    </Typography>
-                  </CardFooter>
-                </Card>
-              </Link>
-            ))}
+                        <Typography className="font-normal text-blue-gray-500">
+                          {product.description}
+                        </Typography>
+                      </div>
+                    </CardBody>
+                    <CardFooter>
+                      <Typography
+                        variant="h5"
+                        color="blue-gray"
+                        className="mb-3 font-bold"
+                      >
+                        {product.price}
+                      </Typography>
+                      <Typography
+                        key={product.category}
+                        className="font-normal text-blue-gray-500"
+                      >
+                        {category.map((cate) => {
+                          if (cate._id === product.category) {
+                            return cate.name;
+                          }
+                        })}
+                      </Typography>
+                    </CardFooter>
+                  </Card>
+                </Link>
+              ))
+            )}
           </div>
         </div>
 
@@ -204,4 +209,4 @@ function ProductList() {
   }
 }
 
-export default ProductList;
+export default ProductByUser;

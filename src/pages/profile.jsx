@@ -1,90 +1,162 @@
-import { Avatar, Typography, Button } from "@material-tailwind/react";
+import {
+  Avatar,
+  Typography,
+  Button,
+  Tabs,
+  TabsHeader,
+  TabsBody,
+  Tab,
+  TabPanel,
+  Menu,
+  MenuHandler,
+  MenuList,
+  MenuItem,
+
+} from "@material-tailwind/react";
 import {
   MapPinIcon,
   BriefcaseIcon,
   BuildingLibraryIcon,
+  UserCircleIcon,
 } from "@heroicons/react/24/solid";
 import { Footer } from "@/widgets/layout";
 import UserApi from "@/api/userApi";
 import { useEffect, useState } from "react";
+import ProductList from "@/components/product/productList";
+import AuctionList from "@/components/auction/auctionList";
+import ProductApi from "@/api/productApi";
+import jwt_decode from "jwt-decode";
+import React from "react";
+import ProductByUser from "@/components/product/productByUser";
+import EditProfile from "@/components/user/editProfile";
+import AuctionByUser from "@/components/auction/auctionByUser";
+import StatsApi from "@/api/statsApi";
 
 
+export function Profile() {
+  const [user, setUser] = useState([]);
+  const [status, setStatus] = useState("idle");
+  const [error, setError] = useState(null);
+  const [userProducts, setUserProducts] = useState([]);
+  const [stats, setStats] = useState([]);
+  const [statsA, setStatsA] = useState([]);
+  // const { id } = useParams();
+  const token = localStorage.getItem("token");
+  const decoded = jwt_decode(token);
+  const userId = decoded.id;
+  const role = decoded.role;
+  const data = [
+    {
+      label: "Profile",
+      value: "profile",
+      icon: UserCircleIcon,
+      desc: <EditProfile />,
+    },
+    {
+      label: "Products",
+      value: "products",
+      icon: BriefcaseIcon,
+      desc: <ProductByUser />,
+    },
+    {
+      label: "Auctions",
+      value: "auctions",
+      icon: BuildingLibraryIcon,
+      desc: <AuctionByUser />,
+    },
+  ];
 
+useEffect(() => {
+    StatsApi.statsProductByUser(userId)
+      .then((data) => {
+        setStats(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+  , []);
+  useEffect(() => {
+    StatsApi.statsAuctionByUser(userId)
+      .then((data) => {
+        setStatsA(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+  , []);
 
-export function Profile (){
-    const [user, setUser] = useState([]);
-    const [status, setStatus] = useState("idle");
-    const [error, setError] = useState(null);
-  
-    useEffect(() => {
-      if (status === "idle") {
-        // Chỉ gửi yêu cầu khi trạng thái là 'idle' (chưa gửi yêu cầu trước đó)
-        setStatus("pending");
-  
-        UserApi.getUserById('652685a4d2408399d8a66011')
-          .then((data) => {
-            setUser(data);
-            setStatus("success");
-          })
-          .catch((error) => {
-            setError(error);
-            setStatus("error");
-          });
-  
-      }
-    }, [status]);
+  useEffect(() => {
+    if (status === "idle") {
+      setStatus("pending");
+
+      UserApi.getUserById(userId)
+        .then((data) => {
+          setUser(data);
+          setStatus("success");
+        })
+        .catch((error) => {
+          setError(error);
+          setStatus("error");
+        });
+    }
+  }, [status]);
   return (
     <>
       <section className="relative block h-[50vh]">
         <div className="bg-profile-background absolute top-0 h-full w-full bg-[url('/img/background-1.jpg')] bg-cover bg-center" />
         <div className="absolute top-0 h-full w-full bg-black/75 bg-cover bg-center" />
       </section>
-      <section className="relative bg-blue-gray-50/50 py-16 px-4">
+      <section className="relative bg-blue-gray-50/50 px-4 py-16">
         <div className="container mx-auto">
-          <div className="relative mb-6 -mt-64 flex w-full min-w-0 flex-col break-words rounded-3xl bg-white shadow-xl shadow-gray-500/5">
+          <div className="relative -mt-64 mb-6 flex w-full min-w-0 flex-col break-words rounded-3xl bg-white shadow-xl shadow-gray-500/5">
             <div className="px-6">
               <div className="flex flex-wrap justify-center">
                 <div className="flex w-full justify-center px-4 lg:order-2 lg:w-3/12">
                   <div className="relative">
                     <div className="-mt-20 w-40">
                       <Avatar
-                        src="/img/team-2.jpg"
+                        src="https://scontent.fhan14-2.fna.fbcdn.net/v/t39.30808-6/370974261_2599891616840719_3178901806695967985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=5f2048&_nc_ohc=ic5VQL6Xb5YAX8khw3K&_nc_oc=AQnHgpl7524BEjMy_0HS2v11Vd0L-i5wFR3XDdLAN87I0h_o3OEat2LSidzUOoCH1JiJG3_CrKqU7o0MIErbgQIi&_nc_ht=scontent.fhan14-2.fna&oh=00_AfBWLzV8MyjRpSK1BhlMvlh_o3_-hiTC5Qhd8UZq5uKH7Q&oe=654AFDBB"
                         alt="Profile picture"
                         variant="circular"
                         className="h-full w-full shadow-xl"
-
                       />
                     </div>
                   </div>
                 </div>
                 <div className="mt-10 flex w-full justify-center px-4 lg:order-3 lg:mt-0 lg:w-4/12 lg:justify-end lg:self-center">
-                  <Button className="bg-blue-400 rounded-full">Message</Button>
+                  <Menu>
+                    <MenuHandler>
+                      <Button>Action</Button>
+                    </MenuHandler>
+                    <MenuList>
+                      {role === "admin" ? (
+                      <MenuItem><a href="/profile/admin">ADMIN</a></MenuItem>):(null)}
+                      <MenuItem><a href="/product/create">Create Product</a></MenuItem>
+                      <MenuItem><a href="/auction/create">Create Auction</a></MenuItem>
+                    </MenuList>
+                  </Menu>
                 </div>
                 <div className="w-full px-4 lg:order-1 lg:w-4/12">
                   <div className="flex justify-center py-4 pt-8 lg:pt-4">
+   
                     <div className="mr-4 p-3 text-center">
-                      <Typography
-                        variant="lead"
-                        color="blue-gray"
-                        className="font-bold uppercase"
-                      >
-                        22
-                      </Typography>
-                      <Typography
-                        variant="small"
-                        className="font-normal text-blue-gray-500"
-                      >
-                        Follows
-                      </Typography>
-                    </div>
-                    <div className="mr-4 p-3 text-center">
-                      <Typography
-                        variant="lead"
-                        color="blue-gray"
-                        className="font-bold uppercase"
-                      >
-                        10
-                      </Typography>
+                      {stats ? (
+                        <div>
+                          <Typography
+                            variant="lead"
+                            color="blue-gray"
+                            className="font-bold uppercase"
+                          >
+                            {stats.totalProducts} 
+                          </Typography>
+                        </div>
+                      ) : (
+                        <Typography variant="paragraph" color="blue-gray">
+                          ?
+                        </Typography>
+                      )}
                       <Typography
                         variant="small"
                         className="font-normal text-blue-gray-500"
@@ -93,18 +165,26 @@ export function Profile (){
                       </Typography>
                     </div>
                     <div className="p-3 text-center lg:mr-4">
-                      <Typography
-                        variant="lead"
-                        color="blue-gray"
-                        className="font-bold uppercase"
-                      >
-                        89
-                      </Typography>
+                    {statsA ? (
+                        <div>
+                          <Typography
+                            variant="lead"
+                            color="blue-gray"
+                            className="font-bold uppercase"
+                          >
+                            {statsA.totalAuctions} 
+                          </Typography>
+                        </div>
+                      ) : (
+                        <Typography variant="paragraph" color="blue-gray">
+                          ?
+                        </Typography>
+                      )}
                       <Typography
                         variant="small"
                         className="font-normal text-blue-gray-500"
                       >
-                        Comments
+                        Auctions
                       </Typography>
                     </div>
                   </div>
@@ -112,42 +192,28 @@ export function Profile (){
               </div>
               <div className="my-8 text-center">
                 <Typography variant="h2" color="blue-gray" className="mb-2">
-                  {user.email}
+                  {user.fullname}
                 </Typography>
-                <div className="mb-16 flex items-center justify-center gap-2">
-                  <MapPinIcon className="-mt-px h-4 w-4 text-blue-gray-700" />
-                  <Typography className="font-medium text-blue-gray-700">
-                    Los Angeles, California
-                  </Typography>
-                </div>
-                <div className="mb-2 flex items-center justify-center gap-2">
-                  <BriefcaseIcon className="-mt-px h-4 w-4 text-blue-gray-700" />
-                  <Typography className="font-medium text-blue-gray-700">
-                    Solution Manager - Creative Tim Officer
-                  </Typography>
-                </div>
-                <div className="mb-2 flex items-center justify-center gap-2">
-                  <BuildingLibraryIcon className="-mt-px h-4 w-4 text-blue-gray-700" />
-                  <Typography className="font-medium text-blue-gray-700">
-                    University of Computer Science
-                  </Typography>
-                </div>
               </div>
-
-              <div className="mb-10 border-t border-blue-gray-50 py-6 text-center">
-                <div className="mt-2 flex flex-wrap justify-center">
-                  <div className="flex w-full flex-col items-center px-4 lg:w-9/12">
-                    <Typography className="mb-8 font-normal text-blue-gray-500">
-                      An artist of considerable range, Jenna the name taken by
-                      Melbourne-raised, Brooklyn-based Nick Murphy writes,
-                      performs and records all of his own music, giving it a
-                      warm, intimate feel with a solid groove structure. An
-                      artist of considerable range.
-                    </Typography>
-                    <Button variant="text">Show more</Button>
-                  </div>
-                </div>
-              </div>
+              <Tabs value="profile" >
+                <TabsHeader>
+                  {data.map(({ label, value, icon }) => (
+                    <Tab key={value} value={value}>
+                      <div className="flex items-center gap-2">
+                        {React.createElement(icon, { className: "w-5 h-5" })}
+                        {label}
+                      </div>
+                    </Tab>
+                  ))}
+                </TabsHeader>
+                <TabsBody>
+                  {data.map(({ value, desc }) => (
+                    <TabPanel key={value} value={value}>
+                      {desc}
+                    </TabPanel>
+                  ))}
+                </TabsBody>
+              </Tabs>
             </div>
           </div>
         </div>

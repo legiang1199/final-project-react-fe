@@ -18,17 +18,6 @@ import { notification } from "antd";
 
 
 export function SignUp() {
-const openNotification = () => {
-  notification.open({
-    message: 'Notification Title',
-    description:
-      'This is the content of the notification. This is the content of the notification. This is the content of the notification.',
-    onClick: () => {
-      console.log('Notification Clicked!');
-    },
-  });
-};
-const contextHolder = notification.useNotification();
   const validationSchema = Yup.object().shape({
     fullname: Yup.string().required("Full name is required"),
     email: Yup.string().required("Email is required").email("Email is invalid"),
@@ -52,11 +41,12 @@ const contextHolder = notification.useNotification();
       try {
         await UserApi.register(data);
         setStatus("success");
-        {contextHolder}
+        alert("Register successfully");
       } catch (error) {
         console.error("Error:", error);
       } finally {
         setSubmitting(false);
+        window.location.href = "/";
       }
     },
   });
