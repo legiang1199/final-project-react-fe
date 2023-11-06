@@ -14,17 +14,22 @@ import DropdownButton from "antd/es/dropdown/dropdown-button";
 import Search from "antd/es/input/Search";
 import { DownOutlined } from "@ant-design/icons";
 import { Dropdown, Space } from "antd";
-import jwt_decode from "jwt-decode";
 
 export function Navbar({ brandName, routes }) {
-  const [user, setUser] = React.useState([]);
   const [openNav, setOpenNav] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
+
   const token = localStorage.getItem("token");
-  if (token) {
-    const decodedToken = jwt_decode(token);
-    const userfullname = decodedToken.fullname;
-    console.log(userfullname);
-  }
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSearch = () => {
+    // Perform the search using the 'searchQuery' state.
+    console.log("Search query: ", searchQuery);
+    // You can send an API request to search for auctions using 'searchQuery' here.
+  };
+
   React.useEffect(() => {
     window.addEventListener(
       "resize",
@@ -33,29 +38,15 @@ export function Navbar({ brandName, routes }) {
   }, []);
 
   const items = [
-
     {
       label: token ? (
         <a
-          href="/profile"
+          href="/profile/"
           className="'bg-gray-100' : '', 'block text-gray-700' px-4 py-2 text-sm"
         >
           Profile
         </a>
-      ) : null,
-    },
-    {
-      label: token ? (
-        <a
-          href="/logout"
-          className="'bg-gray-100' : '', 'block text-gray-700' px-4 py-2 text-sm"
-        >
-          Log out
-        </a>
-      ) : null,
-    },  
-    {
-      label: token ? null : (
+      ) : (
         <a
           href="/sign-in"
           className="'bg-gray-100' : '', 'block text-gray-700' px-4 py-2 text-sm"
@@ -65,7 +56,14 @@ export function Navbar({ brandName, routes }) {
       ),
     },
     {
-      label: token ? null : (
+      label: token ? (
+        <a
+          href="/logout"
+          className="'bg-gray-100' : '', 'block text-gray-700' px-4 py-2 text-sm"
+        >
+          Log out
+        </a>
+      ) : (
         <a
           href="/sign-up"
           className="'bg-gray-100' : '', 'block text-gray-700' px-4 py-2 text-sm"
@@ -138,9 +136,12 @@ export function Navbar({ brandName, routes }) {
               size="sm"
               className="relative rounded-full"
               placeholder="Search Auction"
-              onSearch={(value) => console.log(value)}
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onSearch={handleSearch}
               enterButton
             />
+
             <Button
               variant="gradient"
               size="sm"

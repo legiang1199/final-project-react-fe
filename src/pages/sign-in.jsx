@@ -44,11 +44,12 @@ export const SignIn = () => {
         setStatus("success");
         localStorage.setItem("token", response.token);
         localStorage.setItem("user", JSON.stringify(response.user));
-        window.location.href = "/";
+        alert("Login successfully");
       } catch (error) {
         console.error("Error:", error);
       } finally {
         setSubmitting(false);
+        window.location.href = "/";
       }
     },
   });

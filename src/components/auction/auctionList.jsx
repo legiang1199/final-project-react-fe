@@ -11,6 +11,8 @@ import {
   Input,
   Textarea,
   CardFooter,
+  Avatar,
+  Tooltip,
 } from "@material-tailwind/react";
 import { PageTitle } from "@/widgets/layout";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
@@ -20,6 +22,8 @@ function AuctionList() {
   const [auctions, setAuctions] = useState([]);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState(null);
+
+  const token = localStorage.getItem("token");
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(8);
@@ -61,11 +65,16 @@ function AuctionList() {
     setTimeRemaining(remaining);
   };
 
+  function formatStartingPrice(starting_price) {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(starting_price);
+  }
+
   useEffect(() => {
     const totalPages = Math.ceil(auctions.length / limit);
     setTotalPages(totalPages);
-
-
 
     if (status === "idle") {
       // Chỉ gửi yêu cầu khi trạng thái là 'idle' (chưa gửi yêu cầu trước đó)
@@ -80,7 +89,6 @@ function AuctionList() {
           setError(error);
           setStatus("error");
         });
-   
     }
   }, [status]);
 
@@ -98,7 +106,6 @@ function AuctionList() {
       clearInterval(intervalId); // Cleanup on unmount
     };
   }, [auctions]);
-  
 
   let content;
 
@@ -130,10 +137,10 @@ function AuctionList() {
 
   if (status === "success") {
     return (
-      <div className="bg-white">
-        <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
-          {displayedAuctions.map((auction) => (
-            <Link to={`/auction/${auction._id}`}>
+      <div className="bg-red">
+        {token ? (
+          <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+            {displayedAuctions.map((auction) => (
               <Card key={auction.id} className="shadow-lg shadow-gray-500/10">
                 <CardHeader>
                   <img
@@ -142,24 +149,51 @@ function AuctionList() {
                     className="h-full w-full"
                   />
                 </CardHeader>
-                <CardBody>
+                <CardBody className="grid grid-cols-6 gap-4">
                   <Typography
                     variant="h5"
                     color="blue-gray"
-                    className="mb-3 font-bold"
+                    className="col-span-4 col-start-2 mb-3 truncate font-bold"
                   >
-                    {auction.starting_price}
+                    {auction.name}
                   </Typography>
-                  <Typography className="font-normal text-blue-gray-500">
-                  {timeRemaining[auction._id]}
-                  </Typography>
+                  <Tooltip>
+                    <Avatar
+                      src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1061&q=80"
+                      className="col-start-1 col-end-3 hover:z-10"
+                      variant="rounded"
+                    />
+                  </Tooltip>
+                  <div className="col-span-3 col-end-7">
+                    <Typography className="truncate text-right font-normal text-black">
+                      {formatStartingPrice(auction.starting_price)}
+                    </Typography>
+                    <Typography className="text-right font-normal text-black">
+                      Current
+                    </Typography>
+                  </div>
                 </CardBody>
+                <Link to={`/auction/${auction._id}`}>
+                  <CardFooter>
+                    <div className="grid">
+                      <Button className="px-auto">Place Bid</Button>
+                      <div className="text-center font-normal text-black">
+                        {timeRemaining[auction._id]}
+                      </div>
+                    </div>
+                  </CardFooter>
+                </Link>
               </Card>
-            </Link>
-            
-          ))}
-        </div>
-        
+            ))}
+          </div>
+        ) : (
+          <div className="text-center font-normal text-black">
+            <Button>
+              <a href="/sign-in">Login to use</a>
+            </Button>
+          </div>
+        )}
+
         <div className="mt-4 flex justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
           <div>
             <p className="text-sm text-gray-700">

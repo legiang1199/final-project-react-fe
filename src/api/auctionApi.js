@@ -25,6 +25,14 @@ const AuctionApi = {
         const url = `/auction/${auctionId}`;
         return axiosClient.delete(url);
     },
+    getAuctionByUserId: (userId) => {
+        const url = `/auction/user/${userId}`;
+        return axiosClient.get(url);
+    },
+    searchAuction: (search) =>{
+        const url =`/search/${search}`;
+        return axiosClient.get(url);
+    }
     };
 
 export default AuctionApi;

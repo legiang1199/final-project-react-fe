@@ -1,8 +1,23 @@
-import { Avatar, Typography, Button } from "@material-tailwind/react";
+import {
+  Avatar,
+  Typography,
+  Button,
+  Tabs,
+  TabsHeader,
+  TabsBody,
+  Tab,
+  TabPanel,
+  Menu,
+  MenuHandler,
+  MenuList,
+  MenuItem,
+
+} from "@material-tailwind/react";
 import {
   MapPinIcon,
   BriefcaseIcon,
   BuildingLibraryIcon,
+  UserCircleIcon,
 } from "@heroicons/react/24/solid";
 import { Footer } from "@/widgets/layout";
 import UserApi from "@/api/userApi";
@@ -10,19 +25,73 @@ import { useEffect, useState } from "react";
 import ProductList from "@/components/product/productList";
 import AuctionList from "@/components/auction/auctionList";
 import ProductApi from "@/api/productApi";
+import jwt_decode from "jwt-decode";
+import React from "react";
+import ProductByUser from "@/components/product/productByUser";
+import EditProfile from "@/components/user/editProfile";
+import AuctionByUser from "@/components/auction/auctionByUser";
+import StatsApi from "@/api/statsApi";
+
 
 export function Profile() {
   const [user, setUser] = useState([]);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState(null);
-  const [userProducts, setUserProducts] = useState([])
-  const { id } = useParams();
+  const [userProducts, setUserProducts] = useState([]);
+  const [stats, setStats] = useState([]);
+  const [statsA, setStatsA] = useState([]);
+  // const { id } = useParams();
+  const token = localStorage.getItem("token");
+  const decoded = jwt_decode(token);
+  const userId = decoded.id;
+  const role = decoded.role;
+  const data = [
+    {
+      label: "Profile",
+      value: "profile",
+      icon: UserCircleIcon,
+      desc: <EditProfile />,
+    },
+    {
+      label: "Products",
+      value: "products",
+      icon: BriefcaseIcon,
+      desc: <ProductByUser />,
+    },
+    {
+      label: "Auctions",
+      value: "auctions",
+      icon: BuildingLibraryIcon,
+      desc: <AuctionByUser />,
+    },
+  ];
+
+useEffect(() => {
+    StatsApi.statsProductByUser(userId)
+      .then((data) => {
+        setStats(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+  , []);
+  useEffect(() => {
+    StatsApi.statsAuctionByUser(userId)
+      .then((data) => {
+        setStatsA(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+  , []);
 
   useEffect(() => {
     if (status === "idle") {
       setStatus("pending");
 
-      UserApi.getUserById(id)
+      UserApi.getUserById(userId)
         .then((data) => {
           setUser(data);
           setStatus("success");
@@ -48,7 +117,7 @@ export function Profile() {
                   <div className="relative">
                     <div className="-mt-20 w-40">
                       <Avatar
-                        src="/img/team-2.jpg"
+                        src="https://scontent.fhan14-2.fna.fbcdn.net/v/t39.30808-6/370974261_2599891616840719_3178901806695967985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=5f2048&_nc_ohc=ic5VQL6Xb5YAX8khw3K&_nc_oc=AQnHgpl7524BEjMy_0HS2v11Vd0L-i5wFR3XDdLAN87I0h_o3OEat2LSidzUOoCH1JiJG3_CrKqU7o0MIErbgQIi&_nc_ht=scontent.fhan14-2.fna&oh=00_AfBWLzV8MyjRpSK1BhlMvlh_o3_-hiTC5Qhd8UZq5uKH7Q&oe=654AFDBB"
                         alt="Profile picture"
                         variant="circular"
                         className="h-full w-full shadow-xl"
@@ -57,36 +126,31 @@ export function Profile() {
                   </div>
                 </div>
                 <div className="mt-10 flex w-full justify-center px-4 lg:order-3 lg:mt-0 lg:w-4/12 lg:justify-end lg:self-center">
-                  <Button className="rounded-full bg-blue-400">
-                    <a href="/product/create">New</a>
-                  </Button>
+                  <Menu>
+                    <MenuHandler>
+                      <Button>Action</Button>
+                    </MenuHandler>
+                    <MenuList>
+                      {role === "admin" ? (
+                      <MenuItem><a href="/profile/admin">ADMIN</a></MenuItem>):(null)}
+                      <MenuItem><a href="/product/create">Create Product</a></MenuItem>
+                      <MenuItem><a href="/auction/create">Create Auction</a></MenuItem>
+                    </MenuList>
+                  </Menu>
                 </div>
                 <div className="w-full px-4 lg:order-1 lg:w-4/12">
                   <div className="flex justify-center py-4 pt-8 lg:pt-4">
+   
                     <div className="mr-4 p-3 text-center">
-                      <Typography
-                        variant="lead"
-                        color="blue-gray"
-                        className="font-bold uppercase"
-                      >
-                        22
-                      </Typography>
-                      <Typography
-                        variant="small"
-                        className="font-normal text-blue-gray-500"
-                      >
-                        Follows
-                      </Typography>
-                    </div>
-                    <div className="mr-4 p-3 text-center">
-                      {userProducts.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                          {userProducts.map((product) => (
-                            <Typography
-                            variant="small"
-                            className="font-normal text-blue-gray-500" key={product.id}>
-                            </Typography>
-                          ))}
+                      {stats ? (
+                        <div>
+                          <Typography
+                            variant="lead"
+                            color="blue-gray"
+                            className="font-bold uppercase"
+                          >
+                            {stats.totalProducts} 
+                          </Typography>
                         </div>
                       ) : (
                         <Typography variant="paragraph" color="blue-gray">
@@ -101,13 +165,21 @@ export function Profile() {
                       </Typography>
                     </div>
                     <div className="p-3 text-center lg:mr-4">
-                      <Typography
-                        variant="lead"
-                        color="blue-gray"
-                        className="font-bold uppercase"
-                      >
-                        {auctionCount}
-                      </Typography>
+                    {statsA ? (
+                        <div>
+                          <Typography
+                            variant="lead"
+                            color="blue-gray"
+                            className="font-bold uppercase"
+                          >
+                            {statsA.totalAuctions} 
+                          </Typography>
+                        </div>
+                      ) : (
+                        <Typography variant="paragraph" color="blue-gray">
+                          ?
+                        </Typography>
+                      )}
                       <Typography
                         variant="small"
                         className="font-normal text-blue-gray-500"
@@ -120,19 +192,28 @@ export function Profile() {
               </div>
               <div className="my-8 text-center">
                 <Typography variant="h2" color="blue-gray" className="mb-2">
-                  {user.email}
+                  {user.fullname}
                 </Typography>
               </div>
-              <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
-                <div className="mt-2 flex flex-wrap justify-center ">
-                  <div className="flex w-full flex-col items-center px-4 lg:w-9/12">
-                    {/* <AuctionList /> */}
-                  </div>
-                  <div className="flex w-full flex-col items-center px-4 lg:w-9/12">
-                    <ProductList />
-                  </div>
-                </div>
-              </div>
+              <Tabs value="profile" >
+                <TabsHeader>
+                  {data.map(({ label, value, icon }) => (
+                    <Tab key={value} value={value}>
+                      <div className="flex items-center gap-2">
+                        {React.createElement(icon, { className: "w-5 h-5" })}
+                        {label}
+                      </div>
+                    </Tab>
+                  ))}
+                </TabsHeader>
+                <TabsBody>
+                  {data.map(({ value, desc }) => (
+                    <TabPanel key={value} value={value}>
+                      {desc}
+                    </TabPanel>
+                  ))}
+                </TabsBody>
+              </Tabs>
             </div>
           </div>
         </div>

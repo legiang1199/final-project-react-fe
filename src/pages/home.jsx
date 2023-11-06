@@ -70,19 +70,11 @@ export function Home() {
               />
             ))}
           </div>
-          <div className="mt-12 flex flex-wrap items-center">
+          <div className="mt-12">
             <section>
-              <Card className=" mx-auto px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
+              <Card className="mx-auto px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-auto">
                 <PageTitle heading="Auctions are going on"></PageTitle>
                 <AuctionList />
-              </Card>
-            </section>
-            <section>
-              <Card className="max-w1xl mx-auto px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
-                <PageTitle heading="The product is being approved">
-                  Will be auctioned in the near future
-                </PageTitle>
-                <ProductList />
               </Card>
             </section>
           </div>

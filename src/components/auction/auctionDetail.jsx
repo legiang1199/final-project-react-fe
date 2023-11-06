@@ -1,251 +1,367 @@
-/*
-  This example requires some changes to your config:
-  
-  ```
-  // tailwind.config.js
-  module.exports = {
-    // ...
-    plugins: [
-      // ...
-      require('@tailwindcss/aspect-ratio'),
-    ],
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import UserApi from "@/api/userApi";
+import { Carousel, Button, Typography } from "@material-tailwind/react";
+import AuctionApi from "@/api/auctionApi";
+import CreateBid from "@/components/bid/createBid";
+import ProductApi from "@/api/productApi";
+import BidApi from "@/api/bidApi";
+import jwt_decode from "jwt-decode";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import HistoryBidByAuction from "../bid/historyBidByAuction";
+import { Footer } from "@/widgets/layout";
+import HighBid from "../bid/highBid";
+
+function AuctionDetail() {
+  const [user, setUser] = useState([]);
+  const [auction, setAuction] = useState([]);
+  const [product, setProduct] = useState([]);
+  const [status, setStatus] = useState("idle");
+  const [error, setError] = useState(null);
+  const { id } = useParams();
+  const [isBid, setIsBid] = useState(false);
+  const token = localStorage.getItem("token");
+  const decoded = jwt_decode(token);
+  const userId = decoded.id;
+
+  const [timeLeft, setTimeLeft] = useState(null);
+  const calculateTimeLeft = () => {
+    const now = new Date();
+    const timeDifference = auctionEnd - now;
+    if (timeDifference > 0) {
+      const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor(
+        (timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+      );
+      const minutes = Math.floor(
+        (timeDifference % (1000 * 60 * 60)) / (1000 * 60)
+      );
+      const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+
+      setTimeLeft({ days, hours, minutes, seconds });
+    } else {
+      // Phiên đấu giá đã kết thúc
+      setTimeLeft(null);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    // Đảm bảo rằng bạn xóa timer khi component bị unmount
+    return () => {
+      clearInterval(timer);
+    };
+  }, [status]);
+
+  const renderTimeLeft = () => {
+    if (timeLeft) {
+      return (
+        <div>
+          {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m{" "}
+          {timeLeft.seconds}s
+        </div>
+      );
+    } else {
+      return <div>Auction is closed</div>;
+    }
+  };
+
+  const now = new Date();
+  const auctionEnd = new Date(auction.auction_end);
+  const auctionClosed = auctionEnd < now;
+  const badgeClass = auctionClosed
+    ? "bg-red-100 text-red-800"
+    : "bg-green-100 text-green-800";
+  const badgeText = auctionClosed ? "Closed" : "Open";
+
+  function formatBidAmount(bid_amount) {
+    return bid_amount.toLocaleString("vi", {
+      style: "currency",
+      currency: "VND",
+    });
   }
-  ```
-*/
-import { Fragment, useState } from 'react'
-import { Dialog, RadioGroup, Transition } from '@headlessui/react'
-import { XMarkIcon } from '@heroicons/react/24/outline'
-import { StarIcon } from '@heroicons/react/20/solid'
 
-const product = {
-  name: 'Basic Tee 6-Pack ',
-  price: '$192',
-  rating: 3.9,
-  reviewCount: 117,
-  href: '#',
-  imageSrc: 'https://tailwindui.com/img/ecommerce-images/product-quick-preview-02-detail.jpg',
-  imageAlt: 'Two each of gray, white, and black shirts arranged on table.',
-  colors: [
-    { name: 'White', class: 'bg-white', selectedClass: 'ring-gray-400' },
-    { name: 'Gray', class: 'bg-gray-200', selectedClass: 'ring-gray-400' },
-    { name: 'Black', class: 'bg-gray-900', selectedClass: 'ring-gray-900' },
-  ],
-  sizes: [
-    { name: 'XXS', inStock: true },
-    { name: 'XS', inStock: true },
-    { name: 'S', inStock: true },
-    { name: 'M', inStock: true },
-    { name: 'L', inStock: true },
-    { name: 'XL', inStock: true },
-    { name: 'XXL', inStock: true },
-    { name: 'XXXL', inStock: false },
-  ],
-}
+  function formatDateToDdMmYyyy(date) {
+    const options = {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    };
+    return new Date(date).toLocaleDateString("en-GB", options);
+  }
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
+  const validationSchema = Yup.object().shape({
+    bid_amount: Yup.number().required("Bid amount is required"),
+  });
 
-export default function Example() {
-  const [open, setOpen] = useState(false)
-  const [selectedColor, setSelectedColor] = useState(product.colors[0])
-  const [selectedSize, setSelectedSize] = useState(product.sizes[2])
+  const formik = useFormik({
+    initialValues: {
+      auction: id,
+      user: userId,
+      bid_amount: "",
+    },
+    validationSchema: validationSchema,
+    onSubmit: async (data, { setSubmitting, setStatus }) => {
+      try {
+        await BidApi.createBid(data);
+        setStatus("success");
+        alert("Create bid successfully");
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Bid amount must be greater than current bid");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
 
-  return (
-    <Transition.Root show={open} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={setOpen}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 hidden bg-gray-500 bg-opacity-75 transition-opacity md:block" />
-        </Transition.Child>
+  useEffect(() => {
+    ProductApi.getProductById(auction.product)
+      .then((data) => {
+        setProduct(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [status]);
 
-        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-          <div className="flex min-h-full items-stretch justify-center text-center md:items-center md:px-2 lg:px-4">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-y-4 md:translate-y-0 md:scale-95"
-              enterTo="opacity-100 translate-y-0 md:scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 md:scale-100"
-              leaveTo="opacity-0 translate-y-4 md:translate-y-0 md:scale-95"
-            >
-              <Dialog.Panel className="flex w-full transform text-left text-base transition md:my-8 md:max-w-2xl md:px-4 lg:max-w-4xl">
-                <div className="relative flex w-full items-center overflow-hidden bg-white px-4 pb-8 pt-14 shadow-2xl sm:px-6 sm:pt-8 md:p-6 lg:p-8">
-                  <button
-                    type="button"
-                    className="absolute right-4 top-4 text-gray-400 hover:text-gray-500 sm:right-6 sm:top-8 md:right-6 md:top-6 lg:right-8 lg:top-8"
-                    onClick={() => setOpen(false)}
-                  >
-                    <span className="sr-only">Close</span>
-                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                  </button>
+  useEffect(() => {
+    UserApi.getUserById(auction.owner)
+      .then((data) => {
+        setUser(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [status]);
 
-                  <div className="grid w-full grid-cols-1 items-start gap-x-6 gap-y-8 sm:grid-cols-12 lg:gap-x-8">
-                    <div className="aspect-h-3 aspect-w-2 overflow-hidden rounded-lg bg-gray-100 sm:col-span-4 lg:col-span-5">
-                      <img src={product.imageSrc} alt={product.imageAlt} className="object-cover object-center" />
-                    </div>
-                    <div className="sm:col-span-8 lg:col-span-7">
-                      <h2 className="text-2xl font-bold text-gray-900 sm:pr-12">{product.name}</h2>
+  useEffect(() => {
+    if (status === "idle") {
+      // Chỉ gửi yêu cầu khi trạng thái là 'idle' (chưa gửi yêu cầu trước đó)
+      setStatus("pending");
 
-                      <section aria-labelledby="information-heading" className="mt-2">
-                        <h3 id="information-heading" className="sr-only">
-                          Product information
-                        </h3>
+      AuctionApi.getAuctionById(id)
+        .then((data) => {
+          setAuction(data);
+          setStatus("success");
+        })
+        .catch((error) => {
+          setError(error);
+          setStatus("error");
+        });
+    }
+  }, [status]);
 
-                        <p className="text-2xl text-gray-900">{product.price}</p>
+  if (status === "idle" || status === "pending") {
+    return (
+      <div className="text-center">
+        <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+          Loading
+        </h1>
+        <p className="mt-6 text-base leading-7 text-gray-600">
+          Just a moment, we're fetching that for you.
+        </p>
+      </div>
+    );
+  }
 
-                        {/* Reviews */}
-                        <div className="mt-6">
-                          <h4 className="sr-only">Reviews</h4>
-                          <div className="flex items-center">
-                            <div className="flex items-center">
-                              {[0, 1, 2, 3, 4].map((rating) => (
-                                <StarIcon
-                                  key={rating}
-                                  className={classNames(
-                                    product.rating > rating ? 'text-gray-900' : 'text-gray-200',
-                                    'h-5 w-5 flex-shrink-0'
-                                  )}
-                                  aria-hidden="true"
-                                />
-                              ))}
-                            </div>
-                            <p className="sr-only">{product.rating} out of 5 stars</p>
-                            <a href="#" className="ml-3 text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                              {product.reviewCount} reviews
-                            </a>
-                          </div>
-                        </div>
-                      </section>
+  if (status === "error") {
+    return (
+      <div className="text-center">
+        <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+          Loading
+        </h1>
+        <p className="mt-6 text-base leading-7 text-gray-600">
+          Something went wrong: {error.message}
+        </p>
+      </div>
+    );
+  }
 
-                      <section aria-labelledby="options-heading" className="mt-10">
-                        <h3 id="options-heading" className="sr-only">
-                          Product options
-                        </h3>
+  if (status === "success") {
+    return (
+      <div className="bg-white">
+        <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+          <div className="pt-6">
+            {/* Image gallery */}
 
-                        <form>
-                          {/* Colors */}
-                          <div>
-                            <h4 className="text-sm font-medium text-gray-900">Color</h4>
+            <Carousel className="rounded-xl">
+              <img
+                src="https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2560&q=80"
+                alt="image 1"
+                className="h-full w-full object-cover"
+              />
+              <img
+                src="https://images.unsplash.com/photo-1493246507139-91e8fad9978e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2940&q=80"
+                alt="image 2"
+                className="h-full w-full object-cover"
+              />
+              <img
+                src="https://images.unsplash.com/photo-1518623489648-a173ef7824f3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2762&q=80"
+                alt="image 3"
+                className="h-full w-full object-cover"
+              />
+            </Carousel>
+          </div>
 
-                            <RadioGroup value={selectedColor} onChange={setSelectedColor} className="mt-4">
-                              <RadioGroup.Label className="sr-only">Choose a color</RadioGroup.Label>
-                              <span className="flex items-center space-x-3">
-                                {product.colors.map((color) => (
-                                  <RadioGroup.Option
-                                    key={color.name}
-                                    value={color}
-                                    className={({ active, checked }) =>
-                                      classNames(
-                                        color.selectedClass,
-                                        active && checked ? 'ring ring-offset-1' : '',
-                                        !active && checked ? 'ring-2' : '',
-                                        'relative -m-0.5 flex cursor-pointer items-center justify-center rounded-full p-0.5 focus:outline-none'
-                                      )
-                                    }
-                                  >
-                                    <RadioGroup.Label as="span" className="sr-only">
-                                      {color.name}
-                                    </RadioGroup.Label>
-                                    <span
-                                      aria-hidden="true"
-                                      className={classNames(
-                                        color.class,
-                                        'h-8 w-8 rounded-full border border-black border-opacity-10'
-                                      )}
-                                    />
-                                  </RadioGroup.Option>
-                                ))}
-                              </span>
-                            </RadioGroup>
-                          </div>
-
-                          {/* Sizes */}
-                          <div className="mt-10">
-                            <div className="flex items-center justify-between">
-                              <h4 className="text-sm font-medium text-gray-900">Size</h4>
-                              <a href="#" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                                Size guide
-                              </a>
-                            </div>
-
-                            <RadioGroup value={selectedSize} onChange={setSelectedSize} className="mt-4">
-                              <RadioGroup.Label className="sr-only">Choose a size</RadioGroup.Label>
-                              <div className="grid grid-cols-4 gap-4">
-                                {product.sizes.map((size) => (
-                                  <RadioGroup.Option
-                                    key={size.name}
-                                    value={size}
-                                    disabled={!size.inStock}
-                                    className={({ active }) =>
-                                      classNames(
-                                        size.inStock
-                                          ? 'cursor-pointer bg-white text-gray-900 shadow-sm'
-                                          : 'cursor-not-allowed bg-gray-50 text-gray-200',
-                                        active ? 'ring-2 ring-indigo-500' : '',
-                                        'group relative flex items-center justify-center rounded-md border py-3 px-4 text-sm font-medium uppercase hover:bg-gray-50 focus:outline-none sm:flex-1'
-                                      )
-                                    }
-                                  >
-                                    {({ active, checked }) => (
-                                      <>
-                                        <RadioGroup.Label as="span">{size.name}</RadioGroup.Label>
-                                        {size.inStock ? (
-                                          <span
-                                            className={classNames(
-                                              active ? 'border' : 'border-2',
-                                              checked ? 'border-indigo-500' : 'border-transparent',
-                                              'pointer-events-none absolute -inset-px rounded-md'
-                                            )}
-                                            aria-hidden="true"
-                                          />
-                                        ) : (
-                                          <span
-                                            aria-hidden="true"
-                                            className="pointer-events-none absolute -inset-px rounded-md border-2 border-gray-200"
-                                          >
-                                            <svg
-                                              className="absolute inset-0 h-full w-full stroke-2 text-gray-200"
-                                              viewBox="0 0 100 100"
-                                              preserveAspectRatio="none"
-                                              stroke="currentColor"
-                                            >
-                                              <line x1={0} y1={100} x2={100} y2={0} vectorEffect="non-scaling-stroke" />
-                                            </svg>
-                                          </span>
-                                        )}
-                                      </>
-                                    )}
-                                  </RadioGroup.Option>
-                                ))}
-                              </div>
-                            </RadioGroup>
-                          </div>
-
-                          <button
-                            type="submit"
-                            className="mt-6 flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                          >
-                            Add to bag
-                          </button>
-                        </form>
-                      </section>
-                    </div>
-                  </div>
+          <div className="mx-auto max-w-2xl px-4 pb-16 pt-10 sm:px-6 lg:grid lg:max-w-7xl lg:grid-cols-3 lg:grid-rows-[auto,auto,1fr] lg:gap-x-8 lg:px-8 lg:pb-24 lg:pt-16">
+            <div className="lg:col-span-1 lg:border-r lg:border-gray-200 lg:pr-8">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+                {auction.name}
+              </h1>
+              <div className="mt-10">
+                <h2 className="text-sm font-medium text-gray-900">Details</h2>
+                <div className="mt-4 space-y-6">
+                  <p className="text-sm text-gray-600" key={auction.product}>
+                    {product.description}
+                  </p>
                 </div>
-              </Dialog.Panel>
-            </Transition.Child>
+              </div>
+              <div className="mt-10">
+                <h2 className="text-sm font-medium text-gray-900">Seller</h2>
+                <div className="mt-4 space-y-6">
+                  <p className="text-sm text-gray-600 " key={auction.owner}>
+                    {user.fullname}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-12 lg:row-span-2 lg:mt-0">
+              <div>
+                <h2 className="text-sm font-medium text-gray-900">Status</h2>
+                <div className="mt-4 space-y-6">
+                  <p className="text-sm text-gray-600">
+                    <span
+                      className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${badgeClass}`}
+                    >
+                      {badgeText}
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <div className="mt-10">
+                <h2 className="text-sm font-medium text-gray-900">Time</h2>
+                <div className="mt-4 space-y-6">
+                  <p className="text-sm text-gray-600">
+                    {formatDateToDdMmYyyy(auction.auction_start)} -{" "}
+                    {formatDateToDdMmYyyy(auction.auction_end)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-10">
+                <h2 className="text-sm font-medium text-gray-900">
+                  Current Bid
+                </h2>
+                <div className="mt-4 space-y-6">
+                  <p className="text-sm text-gray-600">
+                    {formatBidAmount(auction.starting_price)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className=" mt-4 lg:row-span-3 lg:mt-0">
+              {}
+              {isBid ? (
+                <div>
+                  <form onSubmit={formik.handleSubmit}>
+                    <div className="">
+                      <h2 className="text-sm font-medium text-gray-900">Bid</h2>
+                      <div className="mt-4 space-y-6">
+                        <input
+                          type="number"
+                          name="bid_amount"
+                          id="bid_amount"
+                          onChange={formik.handleChange}
+                          value={formik.values.bid_amount}
+                          placeholder="Enter bid amount"
+                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black sm:text-sm"
+                        />
+                        {formik.errors.bid_amount &&
+                        formik.touched.bid_amount ? (
+                          <div>{formik.errors.bid_amount}</div>
+                        ) : null}
+                      </div>
+                      <div className="mt-4 flex justify-between">
+                        <Button
+                          color="black"
+                          className="w-80 max-w-screen-lg font-bold sm:w-96"
+                          type="submit"
+                        >
+                          <Typography color="white">Place Bid</Typography>
+                        </Button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              ) : (
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+                    {auction.currentBid}
+                  </h1>
+                </div>
+              )}
+              <div className="mt-4 flex justify-between">
+                {isBid ? (
+                  <Button
+                    color="red"
+                    className="w-80 max-w-screen-lg font-bold sm:w-96"
+                    onClick={() => setIsBid(false)}
+                  >
+                    <Typography color="white">Cancel</Typography>
+                  </Button>
+                ) : (
+                  <div>
+                    {auctionClosed ? (
+                      <div className="justify-between">
+                        <Button
+                          color="black"
+                          className="w-80 max-w-screen-lg font-bold sm:w-96"
+                          disabled
+                        >
+                          <div className="space-y-6">{renderTimeLeft()}</div>
+                          <Typography color="white">Place Bid</Typography>
+                        </Button>
+                        <Button
+                          color="green"
+                          className="mt-2 w-80 max-w-screen-lg font-bold sm:w-96"
+                          
+                          >
+                            <HighBid/>
+                          </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        color="black"
+                        className="w-80 max-w-screen-lg font-bold sm:w-96"
+                        onClick={() => setIsBid(true)}
+                      >
+                        <div className="space-y-6">{renderTimeLeft()}</div>
+                        <Typography color="white">Place Bid</Typography>
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </Dialog>
-    </Transition.Root>
-  )
+        <Typography
+          variant="h4"
+          color="blue-gray"
+          className="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8"
+        >
+          History Bid
+        </Typography>
+        <HistoryBidByAuction />
+        <Footer />
+      </div>
+    );
+  }
 }
+export default AuctionDetail;
