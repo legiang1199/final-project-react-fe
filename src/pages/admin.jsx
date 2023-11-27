@@ -1,27 +1,58 @@
-import React, { useState } from "react";
-
+import React from "react";
+import { Tabs, TabsHeader, Tab } from "@material-tailwind/react";
+import UserControl from "@/components/admin/userControl";
+// import StatsAll from "@/components/admin/statsAll";
+import AuctionControl from "@/components/admin/auctionControl";
+import ProductByUser from "@/components/product/productByUser";
+import EditProfile from "@/components/user/editProfile";
+import { TabPanel, TabsBody } from "@material-tailwind/react";
+import {
+  BriefcaseIcon,
+  BuildingLibraryIcon,
+  UserCircleIcon,
+} from "@heroicons/react/24/solid";
 function Admin() {
-    const [isOpen, setIsOpen] = useState(false);
-
-    const toggleSidebar = () => {
-        setIsOpen(!isOpen);
-    };
-
-    return (
-        <div className="admin flex">
-            <div className={`sidebar ${isOpen ? "open" : ""} bg-gray-800 text-white w-1/4`}>
-                <ul>
-                    <li className="p-4 hover:bg-gray-700 cursor-pointer">Dashboard</li>
-                    <li className="p-4 hover:bg-gray-700 cursor-pointer">Users</li>
-                    <li className="p-4 hover:bg-gray-700 cursor-pointer">Settings</li>
-                </ul>
-            </div>
-            <div className="content w-3/4 p-4">
-                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={toggleSidebar}>Toggle Sidebar</button>
-                <p className="mt-4">This is the content area.</p>
-            </div>
+  const data = [
+    {
+      value: "usercontrol",
+      icon: UserCircleIcon,
+      desc: <UserControl />,
+    },
+    {
+      value: "auctionsControl",
+      icon: BuildingLibraryIcon,
+      desc: <AuctionControl />,
+    },
+    // {
+    //   value: "stats",
+    //   icon: BriefcaseIcon,
+    //   desc: <StatsAll />,
+    // }
+  ];
+  return (
+  
+      <div className="pt-28">
+        <Tabs value="usercontrol">
+          <TabsHeader className="w-auto">
+            {data.map(({ label, value, icon }) => (
+              <Tab key={value} value={value}>
+                {React.createElement(icon, { className: "w-5 h-5" })}
+                {label}
+              </Tab>
+            ))}
+          </TabsHeader>
+          <div class="flex justify-between sm:rounded-xl lg:flex-col lg:px-4 lg:py-10">
+            <TabsBody>
+              {data.map(({ value, desc }) => (
+                <TabPanel key={value} value={value} className="py-0">
+                  {desc}
+                </TabPanel>
+              ))}
+            </TabsBody>
+          </div>
+        </Tabs>
         </div>
-    );
+  );
 }
 
 export default Admin;

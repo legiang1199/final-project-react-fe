@@ -1,3 +1,4 @@
+import { Upload } from 'antd';
 import axiosClient from './axiosSetup/axiosClient';
 
 const ProductApi = {
@@ -22,7 +23,7 @@ const ProductApi = {
   },
 
   createProduct: (data) => {
-    const url = 'product';
+    const url = `/product/`;
     return axiosClient.post(url, data);
   },
 
@@ -30,6 +31,8 @@ const ProductApi = {
     const url = `/product/user/${userId}`;
     return axiosClient.get(url);
   }
+
+
 
 };
 

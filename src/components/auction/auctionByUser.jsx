@@ -28,7 +28,6 @@ function formatStartingPrice(starting_price) {
 
 }
 
-
     useEffect(() => {
         CategoryApi.getAllCategories()
             .then((data) => {

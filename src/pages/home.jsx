@@ -72,7 +72,7 @@ export function Home() {
           </div>
           <div className="mt-12">
             <section>
-              <Card className="mx-auto px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-auto">
+              <Card className="mx-auto px-4 py-4 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-auto">
                 <PageTitle heading="Auctions are going on"></PageTitle>
                 <AuctionList />
               </Card>

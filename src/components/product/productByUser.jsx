@@ -55,6 +55,7 @@ function ProductByUser() {
         .then((data) => {
           setProducts(data);
           setStatus("success");
+          console.log(data);
         })
         .catch((error) => {
           setError(error);
@@ -106,7 +107,7 @@ function ProductByUser() {
                     <CardHeader>
                       <img
                         alt="Card Image"
-                        src="/img/teamwork.jpeg"
+                        src={product.imgUrl}
                         className="h-full w-full"
                       />
                     </CardHeader>

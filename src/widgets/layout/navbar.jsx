@@ -17,18 +17,8 @@ import { Dropdown, Space } from "antd";
 
 export function Navbar({ brandName, routes }) {
   const [openNav, setOpenNav] = React.useState(false);
-  const [searchQuery, setSearchQuery] = React.useState("");
 
   const token = localStorage.getItem("token");
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const handleSearch = () => {
-    // Perform the search using the 'searchQuery' state.
-    console.log("Search query: ", searchQuery);
-    // You can send an API request to search for auctions using 'searchQuery' here.
-  };
 
   React.useEffect(() => {
     window.addEventListener(
@@ -117,7 +107,7 @@ export function Navbar({ brandName, routes }) {
   );
 
   return (
-    <MTNavbar color="transparent" className="bg-black p-3">
+    <MTNavbar color="transparent" className="bg-black">
       <div className="container mx-auto flex items-center justify-between text-white">
         <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
           <div className="flex flex-shrink-0 items-center">
@@ -131,16 +121,15 @@ export function Navbar({ brandName, routes }) {
         <div className="hidden lg:block">{navList}</div>
         <div className="hidden gap-2 lg:flex ">
           <div className="flex items-center gap-2">
-            <Search
+          <a href="/search">
+            <Button
               variant="gradient"
               size="sm"
               className="relative rounded-full"
-              placeholder="Search Auction"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              onSearch={handleSearch}
-              enterButton
-            />
+            >
+              <i className="fa-solid fa-search mr-1 " />
+            </Button>
+            </a>
 
             <Button
               variant="gradient"
@@ -182,6 +171,52 @@ export function Navbar({ brandName, routes }) {
           )}
         </IconButton>
       </div>
+      <MobileNav
+        className="rounded-xl bg-white px-4 pt-2 text-blue-gray-900"
+        open={openNav}
+      >
+        <div className="container mx-auto ">
+        {items.map((item) => (
+            <div key={item.label}>{item.label}</div>
+          ))}
+        {routes.map(({ name, path, icon, href, target }) => (
+          <Typography
+            key={name}
+            as="li"
+            variant="gradient"
+            color="inherit"
+            className="capitalize"
+          >
+            {href ? (
+              <a
+                href={href}
+                target={target}
+                className="flex items-center gap-1 p-1 font-normal"
+              >
+                {icon &&
+                  React.createElement(icon, {
+                    className: "w-[18px] h-[18px] opacity-75 mr-1",
+                  })}
+                {name}
+              </a>
+            ) : (
+              <Link
+                to={path}
+                target={target}
+                className="flex items-center gap-1 p-1 font-normal"
+              >
+                {icon &&
+                  React.createElement(icon, {
+                    className: "w-[18px] h-[18px] opacity-75 mr-1",
+                  })}
+                {name}
+              </Link>
+            )}
+          </Typography>
+        ))}
+          
+        </div>
+      </MobileNav>
     </MTNavbar>
   );
 }

@@ -22,14 +22,14 @@ function HighBid() {
         console.log(error);
       });
 
-    UserApi.getUserById(auction.owner)
+    UserApi.getUserById(auction.winner)
       .then((data) => {
         setUser(data);
       })
       .catch((error) => {
         console.log(error);
       });
-  }, [id, auction.owner]);
+  }, [id, auction.winner]);
 
 
   return (

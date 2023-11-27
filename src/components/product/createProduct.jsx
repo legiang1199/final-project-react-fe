@@ -22,13 +22,15 @@ import { useEffect } from "react";
 import { useState } from "react";
 import jwt_decode from "jwt-decode";
 
+
 export function CreateProduct() {
   const [categories, setCategories] = useState([]);
+  const [image, setImage] = useState([]);
 
   const token = localStorage.getItem("token");
   const decoded = jwt_decode(token);
   const userId = decoded.id;
-
+  const [file, setFile] = useState(null);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -43,7 +45,6 @@ export function CreateProduct() {
   }, []);
 
   const validationSchema = Yup.object().shape({
-    img: Yup.string().required("Image is required"),
     name: Yup.string().required("Name is required"),
     description: Yup.string().required("Description is required"),
     owner: Yup.string().required("Owner is required"),
@@ -51,7 +52,7 @@ export function CreateProduct() {
   });
   const formik = useFormik({
     initialValues: {
-      img: "",
+      imgUrl: "",
       name: "",
       description: "",
       owner: userId,
@@ -60,33 +61,43 @@ export function CreateProduct() {
     validationSchema: validationSchema,
     onSubmit: async (data, { setSubmitting, setStatus }) => {
       try {
-        await ProductApi.createProduct(data);
+        await ProductApi.createProduct({...data, imgUrl: file});
+        console.log(data);
         setStatus("success");
         alert("Create product successfully");
+        window.location.href = "/";
       } catch (error) {
         console.error("Error:", error);
       } finally {
         setSubmitting(false);
-        window.location.href = "/";
       }
     },
   });
-  const props = {
-    name: "img",
-    action: "http://localhost:3001/upload",
-
-    onChange(info) {
-      if (info.file.status !== "uploading") {
-        console.log(info.file, info.fileList);
-        formik.setFieldValue("img", info.file.response.filename);
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      const fileSizeInKB = selectedFile.size / 1024; // Convert size to KB
+      if (fileSizeInKB > 50) {
+        alert("Warning: Image size exceeds 50KB. Please choose a smaller image.");
+      } else {
+        transformFile(selectedFile);
       }
-      if (info.file.status === "done") {
-        console.log(`${info.file.name} file uploaded successfully`);
-      } else if (info.file.status === "error") {
-        console.log(`${info.file.name} file upload failed.`);
-      }
-    },
+    }
   };
+
+  const transformFile = (file) => {
+    const reader = new FileReader();
+    if (file) {
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        setFile( reader.result);
+      };
+    }else{
+      setFile("")
+    }
+  };
+
+  
 
   return (
     <>
@@ -136,32 +147,21 @@ export function CreateProduct() {
                               : null}
                           </div>
                         </div>
-                        <Input
-                          label="Image"
-                          variant="standard"
-                          type="img"
-                          size="lg"
-                          name="img"
-                          className={
-                            "form-control" +
-                            (formik.errors.img && formik.touched.img
-                              ? " is-invalid"
-                              : "")
-                          }
-                          onChange={formik.handleChange}
-                          value={formik.values.img}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          webkitRelativePath=""
+                          onChange={handleFileChange}
                         />
+                        <img
+                          src={file}
+                          alt="Preview"
+                          style={{ maxWidth: "100%", marginTop: "10px" }}
+                        />
+
                         <div className="invalid-feedback">
-                          {formik.errors.img && formik.touched.img
-                            ? formik.errors.img
-                            : null}
-                        </div>
-                        {/* <Upload {...props}>
-                          <Button icon={<UploadOutlined />}>Upload</Button>
-                        </Upload> */}
-                        <div className="invalid-feedback">
-                          {formik.errors.img && formik.touched.img
-                            ? formik.errors.img
+                          {formik.errors.imgUrl && formik.touched.imgUrl
+                            ? formik.errors.imgUrl
                             : null}
                         </div>
                         <Input
@@ -199,14 +199,14 @@ export function CreateProduct() {
                           }
                           onChange={formik.handleChange}
                           value={formik.values.category}
-                        ><option value="">Category</option>
+                        >
+                          <option value="">Category</option>
                           {categories.map((category) => (
                             <option value={category._id}>
                               {category.name}
                             </option>
                           ))}
                         </select>
-
 
                         <div className="invalid-feedback">
                           {formik.errors.category && formik.touched.category

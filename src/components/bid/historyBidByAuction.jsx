@@ -16,6 +16,7 @@ function HistoryBidByAuction() {
   const displayedBid = bids.slice(startIndex, endIndex);
   const [totalPages, setTotalPages] = useState(1);
   const [user, setUser] = useState([]);
+  
 
   function formatBidAmount(bid_amount) {
     return bid_amount.toLocaleString("vi", {
@@ -86,7 +87,18 @@ function HistoryBidByAuction() {
   if (status === "success") {
     return (
       <div className="container mx-auto px-4">
-        <div className="-mx-1 flex flex-wrap-reverse lg:-mx-4">
+        {bids.length === 0 ? (
+          <div className="text-center">
+            <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+              No bid yet
+            </h1>
+            <p className="mt-6 text-base leading-7 text-gray-600">
+              Be the first to bid
+            </p>
+          </div>
+        ) 
+        : (
+        <div className="-mx-1 flex flex-wrap lg:-mx-4">
           {displayedBid.map((bid) => (
             <div
               key={bid.id}
@@ -113,7 +125,7 @@ function HistoryBidByAuction() {
               </div>
             </div>
           ))}
-        </div>
+        </div>)}
       </div>
     );
   }

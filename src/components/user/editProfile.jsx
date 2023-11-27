@@ -18,6 +18,7 @@ function EditProfile() {
   const userId = decoded.id;
   const [profile, setProfile] = useState({});
   const [isEditing, setIsEditing] = useState(false);
+  const [file, setFile] = useState(null);
 
   useEffect(() => {
     UserApi.getUserById(userId).then((data) => {
@@ -29,13 +30,38 @@ function EditProfile() {
     const { name, value } = event.target;
     setProfile({ ...profile, [name]: value });
   };
+  // const handleFileChange = (e) => {
+  //   const selectedFile = e.target.files[0];
+  //   if (selectedFile) {
+  //     const fileSizeInKB = selectedFile.size / 1024; // Convert size to KB
+  //     if (fileSizeInKB > 50) {
+  //       alert(
+  //         "Warning: Image size exceeds 50KB. Please choose a smaller image."
+  //       );
+  //     } else {
+  //       transformFile(selectedFile);
+  //     }
+  //   }
+  // };
+
+  // const transformFile = (file) => {
+  //   const reader = new FileReader();
+  //   if (file) {
+  //     reader.readAsDataURL(file);
+  //     reader.onloadend = () => {
+  //       setFile(reader.result);
+  //     };
+  //   } else {
+  //     setFile("");
+  //   }
+  // };
 
   const handleSubmit = (event) => {
     event.preventDefault();
     UserApi.patchEditUser(userId, profile)
       .then((data) => {
         setProfile(data);
-        setIsEditing(false); 
+        setIsEditing(false);
         alert("Eidt profile successfully");
         window.location.href = "/profile";
       })
@@ -52,6 +78,20 @@ function EditProfile() {
           className="mb-2 mt-8 w-80 max-w-screen-lg sm:w-96"
         >
           <div className="mb-1 flex flex-col gap-6">
+            {/* <Typography variant="h6" color="blue-gray" className="-mb-3">
+              Avatar
+            </Typography>
+            <input
+              type="file"
+              accept="image/*"
+              webkitRelativePath=""
+              onChange={handleFileChange}
+            />
+            <img
+              src={file}
+              alt="Preview"
+              style={{ maxWidth: "100%", marginTop: "10px" }}
+            /> */}
             <Typography variant="h6" color="blue-gray" className="-mb-3">
               Name
             </Typography>
@@ -111,6 +151,7 @@ function EditProfile() {
                 className: "before:content-none after:content-none",
               }}
             />
+
             <Button color="" type="submit">
               <Typography color="white">Save</Typography>
             </Button>
@@ -144,13 +185,21 @@ function EditProfile() {
           </Typography>
         </div>
       )}
-      <div className="flex justify-between mt-4">
+      <div className="mt-4 flex justify-between">
         {isEditing ? (
-          <Button color="red" className="w-80 max-w-screen-lg sm:w-96" onClick={() => setIsEditing(false)}>
+          <Button
+            color="red"
+            className="w-80 max-w-screen-lg sm:w-96"
+            onClick={() => setIsEditing(false)}
+          >
             <Typography color="white">Cancel</Typography>
           </Button>
         ) : (
-          <Button color="red" className="w-80 max-w-screen-lg sm:w-96" onClick={() => setIsEditing(true)}>
+          <Button
+            color="red"
+            className="w-80 max-w-screen-lg sm:w-96"
+            onClick={() => setIsEditing(true)}
+          >
             <Typography color="white">Edit</Typography>
           </Button>
         )}

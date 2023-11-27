@@ -31,6 +31,7 @@ import ProductByUser from "@/components/product/productByUser";
 import EditProfile from "@/components/user/editProfile";
 import AuctionByUser from "@/components/auction/auctionByUser";
 import StatsApi from "@/api/statsApi";
+import BidByUser from "@/components/bid/bidByUser";
 
 
 export function Profile() {
@@ -63,6 +64,12 @@ export function Profile() {
       value: "auctions",
       icon: BuildingLibraryIcon,
       desc: <AuctionByUser />,
+    },
+    {
+      label: "Bids",
+      value: "bids",
+      icon: BuildingLibraryIcon,
+      desc: <BidByUser />,
     },
   ];
 
@@ -117,7 +124,7 @@ useEffect(() => {
                   <div className="relative">
                     <div className="-mt-20 w-40">
                       <Avatar
-                        src="https://scontent.fhan14-2.fna.fbcdn.net/v/t39.30808-6/370974261_2599891616840719_3178901806695967985_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=5f2048&_nc_ohc=ic5VQL6Xb5YAX8khw3K&_nc_oc=AQnHgpl7524BEjMy_0HS2v11Vd0L-i5wFR3XDdLAN87I0h_o3OEat2LSidzUOoCH1JiJG3_CrKqU7o0MIErbgQIi&_nc_ht=scontent.fhan14-2.fna&oh=00_AfBWLzV8MyjRpSK1BhlMvlh_o3_-hiTC5Qhd8UZq5uKH7Q&oe=654AFDBB"
+                        src={(user.imgUrl)? user.imgUrl : "/public/img/team-1.jpg" }
                         alt="Profile picture"
                         variant="circular"
                         className="h-full w-full shadow-xl"

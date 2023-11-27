@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import UserApi from "../api/userApi";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { set } from "mongoose";
 
 export const SignIn = () => {
   const googleAuth = () => {
@@ -47,9 +48,17 @@ export const SignIn = () => {
         alert("Login successfully");
       } catch (error) {
         console.error("Error:", error);
+        alert("Login failed");
       } finally {
         setSubmitting(false);
-        window.location.href = "/";
+        if (setStatus === "success") {
+          window.location.reload();
+          
+        }
+        else {
+          window.location.href = "/";
+        }
+
       }
     },
   });

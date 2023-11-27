@@ -103,7 +103,7 @@ function ProductList() {
                   <CardHeader>
                     <img
                       alt="Card Image"
-                      src="/img/teamwork.jpeg"
+                      src={product.imgUrl}
                       className="h-full w-full"
                     />
                   </CardHeader>

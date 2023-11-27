@@ -12,6 +12,7 @@ import * as Yup from "yup";
 import HistoryBidByAuction from "../bid/historyBidByAuction";
 import { Footer } from "@/widgets/layout";
 import HighBid from "../bid/highBid";
+import { AxiosError } from "axios";
 
 function AuctionDetail() {
   const [user, setUser] = useState([]);
@@ -107,29 +108,40 @@ function AuctionDetail() {
     validationSchema: validationSchema,
     onSubmit: async (data, { setSubmitting, setStatus }) => {
       try {
-        await BidApi.createBid(data);
-        setStatus("success");
-        alert("Create bid successfully");
-      } catch (error) {
-        console.error("Error:", error);
-        alert("Bid amount must be greater than current bid");
+        const response = await BidApi.createBid(data);
+        if (response.success) {
+          setStatus({ type: "success", message: "Create bid successfully" });
+        } else {
+          setStatus({
+            type: "error",
+            message: response.message || "Failed to create bid",
+          });
+        }
+      } catch (AxiosError) {
+        console.error("Error:", AxiosError);
+        setStatus({
+          type: "error",
+          message: "An error occurred while creating bid",
+        });
       } finally {
         setSubmitting(false);
+        window.location.reload();
       }
     },
   });
 
   useEffect(() => {
-    ProductApi.getProductById(auction.product)
+      ProductApi.getProductById(auction.product)
       .then((data) => {
         setProduct(data);
       })
       .catch((error) => {
         console.log(error);
       });
-  }, [status]);
 
-  useEffect(() => {
+    }, [status]);
+
+    useEffect(() => {
     UserApi.getUserById(auction.owner)
       .then((data) => {
         setUser(data);
@@ -137,13 +149,16 @@ function AuctionDetail() {
       .catch((error) => {
         console.log(error);
       });
-  }, [status]);
+    }, [status]);
 
   useEffect(() => {
     if (status === "idle") {
       // Chỉ gửi yêu cầu khi trạng thái là 'idle' (chưa gửi yêu cầu trước đó)
       setStatus("pending");
 
+
+
+  
       AuctionApi.getAuctionById(id)
         .then((data) => {
           setAuction(data);
@@ -330,10 +345,9 @@ function AuctionDetail() {
                         <Button
                           color="green"
                           className="mt-2 w-80 max-w-screen-lg font-bold sm:w-96"
-                          
-                          >
-                            <HighBid/>
-                          </Button>
+                        >
+                          <HighBid />
+                        </Button>
                       </div>
                     ) : (
                       <Button
