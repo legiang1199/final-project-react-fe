@@ -17,12 +17,13 @@ import {
 import { PageTitle } from "@/widgets/layout";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import { Link } from "react-router-dom";
+import ProductApi from "@/api/productApi";
 
 function AuctionList() {
   const [auctions, setAuctions] = useState([]);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState(null);
-
+  const [product, setProduct] = useState([]);
   const token = localStorage.getItem("token");
 
   const [page, setPage] = useState(1);
@@ -93,6 +94,16 @@ function AuctionList() {
   }, [status]);
 
   useEffect(() => {
+    ProductApi.getAllProducts()
+      .then((data) => {
+        setProduct(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [status]);
+
+  useEffect(() => {
     const intervalId = setInterval(() => {
       // Update the time remaining for each auction
       const updatedAuctions = auctions.map((auctionId) => ({
@@ -143,11 +154,20 @@ function AuctionList() {
             {displayedAuctions.map((auction) => (
               <Card key={auction.id} className="shadow-lg shadow-gray-500/10">
                 <CardHeader>
-                  <img
-                    alt="Card Image"
-                    src="/img/teamwork.jpeg"
-                    className="h-full w-full"
-                  />
+                  {product.map((pro) => {
+                    if (pro._id === auction.product) {
+                      return (
+                
+                          <img
+                            alt="Card Image"
+                            key={auction.product}
+                            src={pro.imgUrl}
+                            className="h-full w-full"
+                          />
+                        
+                      );
+                    }
+                  })}
                 </CardHeader>
                 <CardBody className="grid grid-cols-6 gap-4">
                   <Typography

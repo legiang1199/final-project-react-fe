@@ -131,17 +131,16 @@ function AuctionDetail() {
   });
 
   useEffect(() => {
-      ProductApi.getProductById(auction.product)
+    ProductApi.getProductById(auction.product)
       .then((data) => {
         setProduct(data);
       })
       .catch((error) => {
         console.log(error);
       });
+  }, [status]);
 
-    }, [status]);
-
-    useEffect(() => {
+  useEffect(() => {
     UserApi.getUserById(auction.owner)
       .then((data) => {
         setUser(data);
@@ -149,16 +148,12 @@ function AuctionDetail() {
       .catch((error) => {
         console.log(error);
       });
-    }, [status]);
+  }, [status]);
 
   useEffect(() => {
     if (status === "idle") {
       // Chỉ gửi yêu cầu khi trạng thái là 'idle' (chưa gửi yêu cầu trước đó)
       setStatus("pending");
-
-
-
-  
       AuctionApi.getAuctionById(id)
         .then((data) => {
           setAuction(data);
@@ -203,24 +198,12 @@ function AuctionDetail() {
         <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
           <div className="pt-6">
             {/* Image gallery */}
-
-            <Carousel className="rounded-xl">
-              <img
-                src="https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2560&q=80"
-                alt="image 1"
-                className="h-full w-full object-cover"
-              />
-              <img
-                src="https://images.unsplash.com/photo-1493246507139-91e8fad9978e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2940&q=80"
-                alt="image 2"
-                className="h-full w-full object-cover"
-              />
-              <img
-                src="https://images.unsplash.com/photo-1518623489648-a173ef7824f3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2762&q=80"
-                alt="image 3"
-                className="h-full w-full object-cover"
-              />
-            </Carousel>
+            <img
+              alt="Card Image"
+              key={auction.product}
+              src={product.imgUrl}
+              className="h-auto w-full"
+            />
           </div>
 
           <div className="mx-auto max-w-2xl px-4 pb-16 pt-10 sm:px-6 lg:grid lg:max-w-7xl lg:grid-cols-3 lg:grid-rows-[auto,auto,1fr] lg:gap-x-8 lg:px-8 lg:pb-24 lg:pt-16">

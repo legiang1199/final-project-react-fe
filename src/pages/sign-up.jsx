@@ -46,7 +46,7 @@ export function SignUp() {
         console.error("Error:", error);
       } finally {
         setSubmitting(false);
-        window.location.href = "/";
+        window.location.href = "/sign-in";
       }
     },
   });
