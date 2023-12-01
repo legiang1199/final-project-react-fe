@@ -55,7 +55,14 @@ export function CreateAuction() {
     };
     fetchData();
   }, []);
-
+  function formatDateToDdMmYyyy(date) {
+    const options = {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    };
+    return new Date(date).toLocaleDateString("en-GB", options);
+  }
   return (
     <>
       <div className="container mx-auto h-full px-4">
@@ -169,6 +176,16 @@ export function CreateAuction() {
                         </option>
                       ))}
                     </select>
+                  </div>
+
+                  <div className="relative mb-3 w-full">
+                    <label
+                      className="mb-2 block text-xs font-bold uppercase text-gray-700"
+                      htmlFor="grid-password"
+                    >
+                      Auction Start
+                    </label>
+                    {formatDateToDdMmYyyy(Date.now())}
                   </div>
 
                   <div className="relative mb-3 w-full">
