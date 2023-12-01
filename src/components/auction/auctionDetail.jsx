@@ -196,13 +196,13 @@ function AuctionDetail() {
     return (
       <div className="bg-white">
         <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-          <div className="pt-6">
+          <div className="pt-6 ">
             {/* Image gallery */}
             <img
               alt="Card Image"
               key={auction.product}
               src={product.imgUrl}
-              className="h-auto w-full"
+              className="h-auto w-auto max-h-96 max-w-full mx-auto mt-20"
             />
           </div>
 
